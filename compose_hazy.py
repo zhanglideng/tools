@@ -12,9 +12,9 @@ import random
 import cv2
 import gc
 
-train_path = '/input/data/shallow_nyu/train/'
-val_path = '/input/data/shallow_nyu/val/'
-test_path = '/input/data/shallow_nyu/test/'
+train_path = '/input/data/nyu/train/'
+val_path = '/input/data/nyu/val/'
+test_path = '/input/data/nyu/test/'
 
 
 def Guidedfilter(im, p, r, eps):
@@ -34,7 +34,7 @@ def Guidedfilter(im, p, r, eps):
 
 if __name__ == '__main__':
     sigma = 1  # 高斯噪声的方差
-    color_shift = 0.01
+    color_shift = 0.02
     haze_num = 20  # 无雾图生成几张有雾图
     f = h5py.File('/input/data/nyu/nyu_depth_v2_labeled.mat')
     '''
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             fog_A_R = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
             fog_A_G = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
             fog_A_B = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
-            fog_density = round(random.uniform(0.6, 1.8), 2)
+            fog_density = round(random.uniform(0.8, 2.0), 2)
             t = np.exp(-1 * fog_density * depth)
             image_out[0] = image[0] * t + 255 * fog_A_R * (1 - t) + noise
             image_out[1] = image[1] * t + 255 * fog_A_G * (1 - t) + noise
