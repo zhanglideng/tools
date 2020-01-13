@@ -1,6 +1,7 @@
 import cv2
 import os
 
+'''
 path = ['/input/data/nyu/gth/',
         '/input/data/nyu/test/',
         '/input/data/nyu/test_visual/',
@@ -11,6 +12,9 @@ new_path = ['/input/data/nyu/cut_gth/',
             '/input/data/nyu/cut_test_visual/',
             '/input/data/nyu/cut_train/',
             '/input/data/nyu/cut_val/']
+'''
+path = ['/input/data/test/']
+new_path = ['/input/data/cut_path/']
 count = 0
 
 for i in range(len(path)):
@@ -22,9 +26,10 @@ for i in range(len(path)):
         if count % 500 == 0:
             print('count=' + str(count))
         image = cv2.imread(path[i] + j)
-        # print(image.shape)
+        height, width, channel = image.shape
+
         # if image.shape[0] >= 400 and image.shape[1] >= 400:
-        image = image[8:632, 8:472]
+        image = image[:height//8*8, :width//8*8]
         print(image.shape)
         print(new_path[i] + j)
         cv2.imwrite(new_path[i] + j, image)
