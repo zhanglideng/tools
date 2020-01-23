@@ -12,9 +12,9 @@ import random
 import cv2
 import gc
 
-train_path = '/input/data/nyu/train/'
-val_path = '/input/data/nyu/val/'
-test_path = '/input/data/nyu/test/'
+train_path = '/home/aistudio/work/data/nyu/train/'
+val_path = '/home/aistudio/work/data/nyu/val/'
+test_path = '/home/aistudio/work/data/nyu/test/'
 
 
 def Guidedfilter(im, p, r, eps):
@@ -34,21 +34,17 @@ def Guidedfilter(im, p, r, eps):
 
 if __name__ == '__main__':
     sigma = 1  # 高斯噪声的方差
-    color_shift = 0 # 合成无偏差的有雾图
+    color_shift = 0  # 合成无偏差的有雾图
     haze_num = 20  # 无雾图生成几张有雾图
-    f = h5py.File('/input/data/nyu/nyu_depth_v2_labeled.mat')
-    '''
-    depth_path = '/input/data/nyu/depth/'
+    f = h5py.File('/home/aistudio/data/data19783/nyu.mat')
+    depth_path = '/home/aistudio/work/data/nyu/depth/'
     if not os.path.exists(depth_path):
         os.makedirs(depth_path)
-    '''
     depths = f['depths']
     images = f['images']
     print(depths.shape)
     print(images.shape)
     depths = np.array(depths)
-    # m = depths.max()
-    # depths = depths / m
     images = np.array(images)
     length = depths.shape[0]
     for i in range(length):
@@ -67,8 +63,8 @@ if __name__ == '__main__':
         print('dealing:' + str(i) + '.png')
         image_gray = image[0] * 0.299 + image[1] * 0.587 + image[2] * 0.114
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
-        # depth_index_path = depth_path + str(i) + '.npy'
-        # np.save(depth_index_path, depth)
+        depth_index_path = depth_path + str(i) + '.npy'
+        np.save(depth_index_path, depth)
         for rand in range(haze_num):
             image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
             noise = np.random.randn(depth.shape[0], depth.shape[1]) * sigma
@@ -86,4 +82,4 @@ if __name__ == '__main__':
             image_out = np.swapaxes(image_out, 0, 2)
             image_out = np.swapaxes(image_out, 0, 1)
             image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
-            image_out.save(image_path, 'PNG', optimize=True)
+            image_out.save(image_path, 'bmp', optimize=True)
