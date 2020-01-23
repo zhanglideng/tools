@@ -34,7 +34,7 @@ def Guidedfilter(im, p, r, eps):
 
 if __name__ == '__main__':
     sigma = 1  # 高斯噪声的方差
-    color_shift = 0.02
+    color_shift = 0 # 合成无偏差的有雾图
     haze_num = 20  # 无雾图生成几张有雾图
     f = h5py.File('/input/data/nyu/nyu_depth_v2_labeled.mat')
     '''
