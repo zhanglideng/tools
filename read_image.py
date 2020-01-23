@@ -7,7 +7,7 @@ import h5py
 import os
 from PIL import Image
 
-path = '/home/aistudio/work/data/nyu/gth'
+path = '/home/aistudio/work/data/nyu/gth/'
 if not os.path.isdir(path):
     os.makedirs(path)
 
