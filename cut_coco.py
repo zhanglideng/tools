@@ -22,7 +22,7 @@ path = ['/home/aistudio/work/data/coco/train/',
 new_path = ['/home/aistudio/work/data/cut_coco/train/',
             '/home/aistudio/work/data/cut_coco/val/',
             '/home/aistudio/work/data/cut_coco/test/',
-            '/home/aistudio/work/data/cut_coco/unlabeled']
+            '/home/aistudio/work/data/cut_coco/unlabeled/']
 count = 0
 
 for i in range(len(path)):
