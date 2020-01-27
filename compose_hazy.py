@@ -11,10 +11,25 @@ import math
 import random
 import cv2
 import gc
+import time
 
-train_path = '/home/aistudio/work/data/nyu/train/'
-val_path = '/home/aistudio/work/data/nyu/val/'
-test_path = '/home/aistudio/work/data/nyu/test/'
+train_path = '/home/aistudio/data/data19783/nyu/train/'
+val_path = '/home/aistudio/data/data19783/nyu/val/'
+test_path = '/home/aistudio/data/data19783/nyu/test/'
+gth_path = '/home/aistudio/data/data19783/nyu/gth/'
+
+'''
+清晰图像
+有雾图20张
+深度图.npy
+对以上所有图像切边
+对深度图和有雾图引导滤波
+使用png格式压缩
+加速运算过程
+
+高最小值为624 （640，8-632）
+宽最小值为464 （480，8-472）
+'''
 
 
 def Guidedfilter(im, p, r, eps):
@@ -34,19 +49,26 @@ def Guidedfilter(im, p, r, eps):
 
 if __name__ == '__main__':
     sigma = 1  # 高斯噪声的方差
-    color_shift = 0  # 合成无偏差的有雾图
-    haze_num = 20  # 无雾图生成几张有雾图
+    # color_shift = 0  # 合成无偏差的有雾图
+    haze_num = 10  # 无雾图生成几张有雾图
     f = h5py.File('/home/aistudio/data/data19783/nyu.mat')
-    depth_path = '/home/aistudio/work/data/nyu/depth/'
+    depth_path = '/home/aistudio/data/data19783/nyu/depth/'
     if not os.path.exists(depth_path):
         os.makedirs(depth_path)
+    if not os.path.exists(gth_path):
+        os.makedirs(gth_path)
     depths = f['depths']
     images = f['images']
     print(depths.shape)
     print(images.shape)
     depths = np.array(depths)
     images = np.array(images)
+    depths = depths[:, 8:632, 8:472]
+    images = images[:, :, 8:632, 8:472]
+    print(depths.shape)
+    print(images.shape)
     length = depths.shape[0]
+    start = time.time()
     for i in range(length):
         if i < length * 0.8 - 1:
             path = train_path
@@ -65,21 +87,37 @@ if __name__ == '__main__':
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
         depth_index_path = depth_path + str(i) + '.npy'
         np.save(depth_index_path, depth)
+
+        r = Image.fromarray(images[i][0]).convert('L')
+        g = Image.fromarray(images[i][1]).convert('L')
+        b = Image.fromarray(images[i][2]).convert('L')
+        img = Image.merge("RGB", (r, g, b))
+        save_path = gth_path + str(i) + '.PNG'
+        img.save(save_path, 'PNG', optimize=True)
+
         for rand in range(haze_num):
-            image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
-            noise = np.random.randn(depth.shape[0], depth.shape[1]) * sigma
-            fog_A = round(random.uniform(0.5 + color_shift, 1 - color_shift), 2)
-            fog_A_R = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
-            fog_A_G = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
-            fog_A_B = round(fog_A + random.uniform(-1, 1) * color_shift, 2)
+            # image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
+            noise = np.random.randn(1, depth.shape[0], depth.shape[1]) * sigma
+            noise = np.concatenate((noise, noise, noise))
+
+            fog_A = round(random.uniform(0.5, 1), 2)
+            map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
+
             fog_density = round(random.uniform(0.8, 2.0), 2)
+
             t = np.exp(-1 * fog_density * depth)
-            image_out[0] = image[0] * t + 255 * fog_A_R * (1 - t) + noise
-            image_out[1] = image[1] * t + 255 * fog_A_G * (1 - t) + noise
-            image_out[2] = image[2] * t + 255 * fog_A_B * (1 - t) + noise
-            image_path = path + str(
-                i) + '_a=[' + '%.02f' % fog_A_R + ',' + '%.02f' % fog_A_G + ',' + '%.02f' % fog_A_B + ']_b=' + '%.02f' % fog_density + '.png'
+            t = np.expand_dims(t, axis=0)
+            t = np.concatenate((t, t, t))
+            # print(image.shape)
+            # print(t.shape)
+            # print(map_A.shape)
+            # print(noise.shape)
+            image_out = np.add(np.multiply(image, t), np.add(255 * np.multiply(map_A, (1 - t)), noise))
+            image_path = path + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
             image_out = np.swapaxes(image_out, 0, 2)
             image_out = np.swapaxes(image_out, 0, 1)
             image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
-            image_out.save(image_path, 'bmp', optimize=True)
+            image_out.save(image_path, 'PNG', optimize=True)
+        end = time.time()
+        s = (end - start) / (i + 1) * (length - i - 1)
+        print('%d:%02d:%02d' % (s // 3600, s // 60 - s // 3600 * 60, s % 60))
