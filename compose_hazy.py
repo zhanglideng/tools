@@ -13,11 +13,17 @@ import cv2
 import gc
 import time
 
-train_path = '/home/aistudio/data/data19783/nyu/train/'
-val_path = '/home/aistudio/data/data19783/nyu/val/'
-test_path = '/home/aistudio/data/data19783/nyu/test/'
-gth_path = '/home/aistudio/data/data19783/nyu/gth/'
+train_path = '/input/data/nyu/train/'
+val_path = '/input/data/nyu/val/'
+test_path = '/input/data/nyu/test/'
+gth_path = '/input/data/nyu/gth/'
 
+depth_path = '/input/data/nyu/depth/'
+mat_path = '/input/data/nyu_depth_v2_labeled.mat'
+
+haze_num = 1  # 无雾图生成几张有雾图
+sigma = 1  # 高斯噪声的方差
+trim_size = 16
 '''
 清晰图像
 有雾图20张
@@ -48,11 +54,10 @@ def Guidedfilter(im, p, r, eps):
 
 
 if __name__ == '__main__':
-    sigma = 1  # 高斯噪声的方差
+
     # color_shift = 0  # 合成无偏差的有雾图
-    haze_num = 10  # 无雾图生成几张有雾图
-    f = h5py.File('/home/aistudio/data/data19783/nyu.mat')
-    depth_path = '/home/aistudio/data/data19783/nyu/depth/'
+
+    f = h5py.File(mat_path)
     if not os.path.exists(depth_path):
         os.makedirs(depth_path)
     if not os.path.exists(gth_path):
@@ -63,8 +68,10 @@ if __name__ == '__main__':
     print(images.shape)
     depths = np.array(depths)
     images = np.array(images)
-    depths = depths[:, 8:632, 8:472]
-    images = images[:, :, 8:632, 8:472]
+
+    # 裁剪其使其能放入AtJ网络
+    depths = depths[:, trim_size:640 - trim_size, trim_size:480 - trim_size]
+    images = images[:, :, trim_size:640 - trim_size, trim_size:480 - trim_size]
     print(depths.shape)
     print(images.shape)
     length = depths.shape[0]
@@ -113,6 +120,8 @@ if __name__ == '__main__':
             # print(map_A.shape)
             # print(noise.shape)
             image_out = np.add(np.multiply(image, t), np.add(255 * np.multiply(map_A, (1 - t)), noise))
+            image_out[image_out < 0] = 0
+            image_out[image_out > 255] = 255
             image_path = path + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
             image_out = np.swapaxes(image_out, 0, 2)
             image_out = np.swapaxes(image_out, 0, 1)
