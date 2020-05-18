@@ -18,10 +18,10 @@ val_path = '/input/data/nyu/val/'
 test_path = '/input/data/nyu/test/'
 gth_path = '/input/data/nyu/gth/'
 
-depth_path = '/input/data/nyu/depth/'
+t_path = '/input/data/nyu/transmission/'
 mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 
-haze_num = 1  # 无雾图生成几张有雾图
+haze_num = 2  # 无雾图生成几张有雾图
 sigma = 1  # 高斯噪声的方差
 trim_size = 16
 '''
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     # color_shift = 0  # 合成无偏差的有雾图
 
     f = h5py.File(mat_path)
-    if not os.path.exists(depth_path):
-        os.makedirs(depth_path)
+    if not os.path.exists(t_path):
+        os.makedirs(t_path)
     if not os.path.exists(gth_path):
         os.makedirs(gth_path)
     depths = f['depths']
@@ -92,8 +92,8 @@ if __name__ == '__main__':
         print('dealing:' + str(i) + '.png')
         image_gray = image[0] * 0.299 + image[1] * 0.587 + image[2] * 0.114
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
-        depth_index_path = depth_path + str(i) + '.npy'
-        np.save(depth_index_path, depth)
+        # depth_index_path = depth_path + str(i) + '.npy'
+        # np.save(depth_index_path, depth)
 
         r = Image.fromarray(images[i][0]).convert('L')
         g = Image.fromarray(images[i][1]).convert('L')
@@ -107,12 +107,15 @@ if __name__ == '__main__':
             noise = np.random.randn(1, depth.shape[0], depth.shape[1]) * sigma
             noise = np.concatenate((noise, noise, noise))
 
-            fog_A = round(random.uniform(0.5, 1), 2)
+            fog_A = round(random.uniform(0.7, 1), 2)
             map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
 
             fog_density = round(random.uniform(0.8, 2.0), 2)
 
             t = np.exp(-1 * fog_density * depth)
+            t_index_path = t_path + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
+            np.save(t_index_path, t)
+
             t = np.expand_dims(t, axis=0)
             t = np.concatenate((t, t, t))
             # print(image.shape)
