@@ -129,7 +129,7 @@ if __name__ == '__main__':
             image_out = np.swapaxes(image_out, 0, 2)
             image_out = np.swapaxes(image_out, 0, 1)
             image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
-            image_out.save(image_path, 'PNG', optimize=True)
+            image_out.save(image_path, 'png', optimize=True)
         end = time.time()
         s = (end - start) / (i + 1) * (length - i - 1)
         print('%d:%02d:%02d' % (s // 3600, s // 60 - s // 3600 * 60, s % 60))
