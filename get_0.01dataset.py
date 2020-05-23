@@ -1,8 +1,8 @@
 import os
 import shutil
 
-path = ['./data/train/', './data/val/', './data/test/']
-new_path = ['./data/mini_train/', './data/mini_val/', './data/mini_test/']
+path = ['/input/data/nyu/train/', '/input/data/nyu/val/']
+new_path = ['/input/data/nyu/mini_train/', '/input/data/nyu/mini_val/']
 for i in new_path:
     if not os.path.exists(i):
         os.makedirs(i)
