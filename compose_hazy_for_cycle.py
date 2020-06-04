@@ -21,7 +21,7 @@ gth_path = '/input/data/nyu/gth/'
 t_path = '/input/data/nyu/transmission/'
 mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 
-haze_num = 2  # 无雾图生成几张有雾图
+haze_num = 1  # 无雾图生成几张有雾图
 sigma = 1  # 高斯噪声的方差
 trim_size = 16
 '''
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         g = Image.fromarray(images[i][1]).convert('L')
         b = Image.fromarray(images[i][2]).convert('L')
         img = Image.merge("RGB", (r, g, b))
-        save_path = gth_path + str(i) + '.PNG'
+        save_path = gth_path + '0' * (4 - len(str(i))) + str(i) + '.png'
         img.save(save_path, 'PNG', optimize=True)
 
         for rand in range(haze_num):
@@ -110,10 +110,10 @@ if __name__ == '__main__':
             fog_A = round(random.uniform(0.7, 1), 2)
             map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
 
-            fog_density = round(random.uniform(0.8, 2.0), 2)
+            fog_density = round(random.uniform(0.8, 1.0), 2)
 
             t = np.exp(-1 * fog_density * depth)
-            t_index_path = t_path + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
+            t_index_path = t_path + '0' * (4 - len(str(i))) + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
             np.save(t_index_path, t)
 
             t = np.expand_dims(t, axis=0)

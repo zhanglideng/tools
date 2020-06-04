@@ -99,7 +99,7 @@ if __name__ == '__main__':
         g = Image.fromarray(images[i][1]).convert('L')
         b = Image.fromarray(images[i][2]).convert('L')
         img = Image.merge("RGB", (r, g, b))
-        save_path = gth_path + str(i) + '.PNG'
+        save_path = gth_path + '0' * (4 - len(str(i))) + str(i) + '.png'
         img.save(save_path, 'PNG', optimize=True)
 
         for rand in range(haze_num):
@@ -113,7 +113,7 @@ if __name__ == '__main__':
             fog_density = round(random.uniform(0.8, 2.0), 2)
 
             t = np.exp(-1 * fog_density * depth)
-            t_index_path = t_path + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
+            t_index_path = t_path + '0' * (4 - len(str(i))) + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
             np.save(t_index_path, t)
 
             t = np.expand_dims(t, axis=0)
