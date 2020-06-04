@@ -13,3 +13,6 @@ for i in range(len(path)):
     for j in range(length):
         shutil.copy(path[i] + data_list[j], new_path[i])
     print('finish the %s copy' % i)
+
+
+
